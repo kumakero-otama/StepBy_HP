@@ -1,6 +1,8 @@
 :root {
-  --header-height: 76px;
-  --guide-reserve-height: 92px;
+  --first-view-height: min(100vh, 600px);
+  --header-height: 72px;
+  --guide-reserve-height: 72px;
+  --content-max-width: 1200px;
   --header-color: #2e9e8f;
   --hero-color: #54a89b;
   --button-color: #ffffff;
@@ -57,47 +59,74 @@ img {
 }
 
 .site-logo {
-  font-size: 1.85rem;
+  font-size: 1.75rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   color: #ffffff;
 }
 
 .hero {
-  display: grid;
-  grid-template-columns: 1.03fr 0.97fr;
-  min-height: calc(100vh - var(--header-height) - var(--guide-reserve-height));
+  position: relative;
+  min-height: calc(var(--first-view-height) - var(--header-height) - var(--guide-reserve-height));
+  background: linear-gradient(
+    to right,
+    var(--hero-color) 0,
+    var(--hero-color) 50%,
+    #ffffff 50%,
+    #ffffff 100%
+  );
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    var(--hero-color) 0,
+    var(--hero-color) calc(50% - 600px),
+    transparent calc(50% - 600px),
+    transparent calc(50% + 600px),
+    #ffffff calc(50% + 600px),
+    #ffffff 100%
+  );
+  pointer-events: none;
 }
 
 .hero__panel {
-  min-height: calc(100vh - var(--header-height) - var(--guide-reserve-height));
+  min-height: calc(var(--first-view-height) - var(--header-height) - var(--guide-reserve-height));
+}
+
+.hero {
+  display: flex;
+  justify-content: center;
 }
 
 .hero__panel--content {
-  background: var(--hero-color);
+  flex: 0 1 600px;
 }
 
 .hero__panel--visual {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 56px;
-  background: #ffffff;
+  flex: 0 1 600px;
+  padding: 26px 40px 30px;
 }
 
 .hero__content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   min-height: 100%;
-  padding: 72px 72px 88px;
+  width: 100%;
+  padding: 34px 40px 30px;
 }
 
 .hero__brand {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 120px;
 }
 
 .hero__icon {
@@ -109,7 +138,7 @@ img {
 
 .hero__title {
   margin: 0;
-  font-size: clamp(3.6rem, 7vw, 6rem);
+  font-size: clamp(3rem, 6vw, 5rem);
   font-weight: 800;
   line-height: 1;
   color: #ffffff;
@@ -117,10 +146,10 @@ img {
 
 .hero__description {
   max-width: 520px;
-  margin: 0 0 36px;
-  font-size: clamp(1.1rem, 1.7vw, 1.5rem);
+  margin: 0;
+  font-size: clamp(1rem, 1.45vw, 1.28rem);
   font-weight: 500;
-  line-height: 1.9;
+  line-height: 1.75;
   color: #ffffff;
 }
 
@@ -129,15 +158,20 @@ img {
   align-items: center;
   justify-content: center;
   width: fit-content;
-  min-height: 66px;
-  padding: 0 34px;
+  min-height: 60px;
+  padding: 0 30px;
   border-radius: 999px;
   background: var(--button-color);
   color: var(--button-text);
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 800;
   box-shadow: 0 18px 35px rgba(20, 67, 61, 0.18);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero__text-group {
+  display: grid;
+  gap: 28px;
 }
 
 .hero__button:hover,
@@ -147,7 +181,8 @@ img {
 }
 
 .hero__image-card {
-  width: min(100%, 720px);
+  width: 100%;
+  max-width: 560px;
   padding: 14px;
   border-radius: 28px;
   background: #ffffff;
@@ -167,30 +202,38 @@ img {
 
 @media (max-width: 1100px) {
   .hero {
-    grid-template-columns: 1fr;
+    display: grid;
+    background: none;
+    min-height: auto;
+  }
+
+  .hero::before {
+    display: none;
   }
 
   .hero__panel {
     min-height: auto;
   }
 
-  .hero__content {
-    padding: 56px 32px 48px;
+  .hero__panel--content {
+    background: var(--hero-color);
   }
 
-  .hero__brand {
-    margin-bottom: 56px;
+  .hero__content {
+    gap: 32px;
+    padding: 48px 32px 40px;
   }
 
   .hero__panel--visual {
     padding: 28px 24px 48px;
+    background: #ffffff;
   }
 }
 
 @media (max-width: 640px) {
   :root {
     --header-height: 68px;
-    --guide-reserve-height: 72px;
+    --guide-reserve-height: 56px;
   }
 
   .site-header__inner {
@@ -202,12 +245,12 @@ img {
   }
 
   .hero__content {
-    padding: 42px 20px 36px;
+    gap: 24px;
+    padding: 38px 20px 32px;
   }
 
   .hero__brand {
     gap: 14px;
-    margin-bottom: 40px;
   }
 
   .hero__description {
