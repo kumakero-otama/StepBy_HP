@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StepBy</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="site-logo" href="./">StepBy</a>
+    </div>
+  </header>
+
+  <main class="page-main">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__panel hero__panel--content">
+        <div class="hero__content">
+          <div class="hero__brand">
+            <img
+              class="hero__icon"
+              src="assets/images/StepBy_icon.webp"
+              alt="StepBy icon"
+            >
+            <h1 id="hero-title" class="hero__title">StepBy</h1>
+          </div>
+
+          <p class="hero__description">
+            あなたの一歩が、誰かの道になる。<br>
+            視覚障害者向け地図情報投稿アプリ
+          </p>
+
+          <a
+            class="hero__button"
+            data-app-link="mapApp"
+            href="#"
+            target="_blank"
+            rel="noreferrer"
+          >
+            StepByを使う（インストール不要）
+          </a>
+        </div>
+      </div>
+
+      <div class="hero__panel hero__panel--visual">
+        <div class="hero__image-card">
+          <img
+            class="hero__image"
+            src="assets/images/UI2_mapscreen.png"
+            alt="StepBy map screen"
+          >
+        </div>
+      </div>
+    </section>
+
+    <div class="guide-reserve" aria-hidden="true"></div>
+  </main>
+
+  <script src="scripts/site-config.js"></script>
+  <script src="scripts/main.js"></script>
+</body>
+</html>
