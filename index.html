@@ -9,7 +9,13 @@
 <body>
   <header class="site-header">
     <div class="site-header__inner">
+      <button
+        class="site-header__press-area"
+        type="button"
+        aria-label="Show version while pressing"
+      ></button>
       <a class="site-logo" href="./">StepBy</a>
+      <span class="site-version" data-site-version aria-hidden="true"></span>
     </div>
   </header>
 
@@ -56,7 +62,34 @@
       </div>
     </section>
 
-    <div class="guide-reserve" aria-hidden="true"></div>
+    <nav class="guide-nav" aria-label="Page sections">
+      <div class="guide-nav__inner">
+        <a class="guide-nav__item" href="#">
+          <span>お知らせ</span>
+          <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
+        </a>
+        <a class="guide-nav__item" href="#">
+          <span>StepByとは</span>
+          <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
+        </a>
+        <a class="guide-nav__item" href="#">
+          <span>アプリの使い方</span>
+          <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
+        </a>
+        <a class="guide-nav__item" href="#">
+          <span>よくある質問</span>
+          <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
+        </a>
+        <a class="guide-nav__item" href="#">
+          <span>スポンサー</span>
+          <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
+        </a>
+        <a class="guide-nav__item" href="#">
+          <span>お問い合わせ</span>
+          <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
+        </a>
+      </div>
+    </nav>
   </main>
 
   <script src="scripts/site-config.js"></script>

@@ -1,5 +1,8 @@
 (function () {
   const config = window.StepBySiteConfig;
+  const header = document.querySelector(".site-header");
+  const versionElement = document.querySelector("[data-site-version]");
+  const pressArea = document.querySelector(".site-header__press-area");
 
   if (!config || !config.links) {
     return;
@@ -12,5 +15,33 @@
     if (href) {
       element.setAttribute("href", href);
     }
+  });
+
+  if (versionElement && config.version) {
+    versionElement.textContent = config.version;
+  }
+
+  if (!header || !pressArea) {
+    return;
+  }
+
+  const showVersion = () => {
+    if (config.version) {
+      header.classList.add("site-header--show-version");
+      versionElement?.setAttribute("aria-hidden", "false");
+    }
+  };
+
+  const hideVersion = () => {
+    header.classList.remove("site-header--show-version");
+    versionElement?.setAttribute("aria-hidden", "true");
+  };
+
+  ["mousedown", "touchstart", "pointerdown"].forEach((eventName) => {
+    pressArea.addEventListener(eventName, showVersion);
+  });
+
+  ["mouseup", "mouseleave", "touchend", "touchcancel", "pointerup", "pointercancel"].forEach((eventName) => {
+    pressArea.addEventListener(eventName, hideVersion);
   });
 })();
