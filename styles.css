@@ -1,5 +1,4 @@
 :root {
-  --first-view-height: min(100vh, 600px);
   --header-height: 72px;
   --guide-reserve-height: 72px;
   --content-max-width: 1200px;
@@ -24,6 +23,7 @@ body {
   font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
   background: var(--page-background);
   color: var(--text-dark);
+  overflow-x: clip;
 }
 
 .page-main {
@@ -98,7 +98,7 @@ img {
 
 .hero {
   position: relative;
-  min-height: calc(var(--first-view-height) - var(--header-height) - var(--guide-reserve-height));
+  min-height: calc(100dvh - var(--header-height) - var(--guide-reserve-height));
   background: linear-gradient(
     to right,
     var(--hero-color) 0,
@@ -125,7 +125,7 @@ img {
 }
 
 .hero__panel {
-  min-height: calc(var(--first-view-height) - var(--header-height) - var(--guide-reserve-height));
+  min-height: calc(100dvh - var(--header-height) - var(--guide-reserve-height));
 }
 
 .hero {
@@ -226,7 +226,7 @@ img {
 
 .hero__image {
   width: 100%;
-  max-height: calc(var(--first-view-height) - var(--header-height) - var(--guide-reserve-height) - 72px);
+  max-height: calc(100dvh - var(--header-height) - var(--guide-reserve-height) - 72px);
   height: auto;
   border-radius: 20px;
   object-fit: contain;
@@ -236,9 +236,11 @@ img {
   height: var(--guide-reserve-height);
   padding: 0 24px 24px;
   background: var(--page-background);
+  overflow-x: clip;
 }
 
 .guide-nav__inner {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   max-width: var(--content-max-width);
@@ -262,27 +264,37 @@ img {
 }
 
 .guide-nav__item + .guide-nav__item {
-  border-left: 1px solid #111111;
+  border-left: 0;
 }
 
-.guide-nav__item:first-child::before,
-.guide-nav__item:last-child::after {
+.guide-nav__item + .guide-nav__item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background: #b7b7b7;
+}
+
+.guide-nav__inner::before,
+.guide-nav__inner::after {
   content: "";
   position: absolute;
   top: -1px;
   bottom: -1px;
-  width: calc((100vw - min(100vw, var(--content-max-width))) / 2 + 24px);
+  width: max(0px, calc((100vw - min(100vw, var(--content-max-width))) / 2));
   background: #ffffff;
 }
 
-.guide-nav__item:first-child::before {
+.guide-nav__inner::before {
   right: 100%;
   border-top: 1px solid #111111;
   border-bottom: 1px solid #111111;
   border-left: 1px solid #111111;
 }
 
-.guide-nav__item:last-child::after {
+.guide-nav__inner::after {
   left: 100%;
   border-top: 1px solid #111111;
   border-right: 1px solid #111111;
@@ -338,6 +350,10 @@ img {
 
   .guide-nav__item:nth-child(4) {
     border-left: 0;
+  }
+
+  .guide-nav__item:nth-child(4)::before {
+    display: none;
   }
 }
 
@@ -407,8 +423,27 @@ img {
     border-left: 0;
   }
 
-  .guide-nav__item:first-child::before,
-  .guide-nav__item:last-child::after {
+  .guide-nav__item:nth-child(3)::before,
+  .guide-nav__item:nth-child(5)::before {
+    display: none;
+  }
+
+  .guide-nav__inner::before,
+  .guide-nav__inner::after {
     width: 16px;
+  }
+}
+
+@supports not (height: 100dvh) {
+  .hero {
+    min-height: calc(100vh - var(--header-height) - var(--guide-reserve-height));
+  }
+
+  .hero__panel {
+    min-height: calc(100vh - var(--header-height) - var(--guide-reserve-height));
+  }
+
+  .hero__image {
+    max-height: calc(100vh - var(--header-height) - var(--guide-reserve-height) - 72px);
   }
 }
