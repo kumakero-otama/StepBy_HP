@@ -3,6 +3,7 @@
   const header = document.querySelector(".site-header");
   const versionElement = document.querySelector("[data-site-version]");
   const pressArea = document.querySelector(".site-header__press-area");
+  const backToTopButton = document.querySelector(".back-to-top");
 
   if (!config || !config.links) {
     return;
@@ -43,5 +44,12 @@
 
   ["mouseup", "mouseleave", "touchend", "touchcancel", "pointerup", "pointercancel"].forEach((eventName) => {
     pressArea.addEventListener(eventName, hideVersion);
+  });
+
+  backToTopButton?.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
   });
 })();
