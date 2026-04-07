@@ -10,13 +10,97 @@
 <body>
   <header class="site-header">
     <div class="site-header__inner">
-      <button
-        class="site-header__press-area"
-        type="button"
-        aria-label="Show version while pressing"
-      ></button>
-      <a class="site-logo" href="./">StepBy</a>
-      <span class="site-version" data-site-version aria-hidden="true"></span>
+      <div class="site-header__brand">
+        <button
+          class="site-header__press-area"
+          type="button"
+          aria-label="Show version while pressing"
+        ></button>
+        <a class="site-logo" href="./">StepBy</a>
+        <span class="site-version" data-site-version aria-hidden="true"></span>
+      </div>
+
+      <div class="site-header__actions">
+        <a
+          class="header-open-button"
+          data-app-link="mapApp"
+          href="#"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <img src="assets/icons/open_1fgray.png" alt="" aria-hidden="true">
+          <span>StepByを開く</span>
+        </a>
+
+        <div class="header-dropdown" data-dropdown>
+          <button
+            class="header-dropdown__trigger"
+            type="button"
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            <span>文字サイズ</span>
+            <strong>小</strong>
+            <img
+              class="header-dropdown__icon header-dropdown__icon--closed"
+              src="assets/icons/right_white.png"
+              alt=""
+              aria-hidden="true"
+            >
+            <img
+              class="header-dropdown__icon header-dropdown__icon--open"
+              src="assets/icons/down_white.png"
+              alt=""
+              aria-hidden="true"
+            >
+          </button>
+          <div class="header-dropdown__menu" role="menu">
+            <button class="header-dropdown__item is-selected" type="button" role="menuitem">
+              <span>小</span>
+              <img src="assets/icons/check_1fgray.png" alt="" aria-hidden="true">
+            </button>
+            <button class="header-dropdown__item" type="button" role="menuitem">
+              <span>中</span>
+            </button>
+            <button class="header-dropdown__item" type="button" role="menuitem">
+              <span>大</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="header-dropdown" data-dropdown>
+          <button
+            class="header-dropdown__trigger"
+            type="button"
+            aria-expanded="false"
+            aria-haspopup="true"
+          >
+            <span>Language</span>
+            <strong>日本語</strong>
+            <img
+              class="header-dropdown__icon header-dropdown__icon--closed"
+              src="assets/icons/right_white.png"
+              alt=""
+              aria-hidden="true"
+            >
+            <img
+              class="header-dropdown__icon header-dropdown__icon--open"
+              src="assets/icons/down_white.png"
+              alt=""
+              aria-hidden="true"
+            >
+          </button>
+          <div class="header-dropdown__menu" role="menu">
+            <button class="header-dropdown__item is-selected" type="button" role="menuitem">
+              <span>日本語</span>
+              <img src="assets/icons/check_1fgray.png" alt="" aria-hidden="true">
+            </button>
+            <button class="header-dropdown__item" type="button" role="menuitem">
+              <span>English</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </header>
 

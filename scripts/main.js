@@ -4,6 +4,7 @@
   const versionElement = document.querySelector("[data-site-version]");
   const pressArea = document.querySelector(".site-header__press-area");
   const backToTopButton = document.querySelector(".back-to-top");
+  const dropdowns = document.querySelectorAll("[data-dropdown]");
 
   if (!config || !config.links) {
     return;
@@ -51,5 +52,31 @@
       top: 0,
       behavior: "smooth"
     });
+  });
+
+  const closeDropdowns = (except) => {
+    dropdowns.forEach((dropdown) => {
+      if (dropdown !== except) {
+        dropdown.classList.remove("is-open");
+        dropdown.querySelector(".header-dropdown__trigger")?.setAttribute("aria-expanded", "false");
+      }
+    });
+  };
+
+  dropdowns.forEach((dropdown) => {
+    const trigger = dropdown.querySelector(".header-dropdown__trigger");
+
+    trigger?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const willOpen = !dropdown.classList.contains("is-open");
+
+      closeDropdowns(dropdown);
+      dropdown.classList.toggle("is-open", willOpen);
+      trigger.setAttribute("aria-expanded", willOpen ? "true" : "false");
+    });
+  });
+
+  document.addEventListener("click", () => {
+    closeDropdowns();
   });
 })();
