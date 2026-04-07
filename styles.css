@@ -518,6 +518,14 @@ img {
   margin: 0 0 1.15em;
 }
 
+.about-subheading {
+  margin: 2.1em 0 0.8em;
+  color: #111111;
+  font-size: 1.24rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
 .back-to-top {
   position: fixed;
   right: 28px;
@@ -566,10 +574,17 @@ img {
 .article-back-link {
   display: inline-flex;
   align-items: center;
+  gap: 8px;
   margin-bottom: 18px;
   color: #2e7d72;
   font-size: 0.98rem;
   font-weight: 800;
+}
+
+.article-back-link img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
 }
 
 .article-card {
@@ -780,6 +795,11 @@ img {
   .about-copy {
     font-size: 1rem;
     line-height: 1.9;
+  }
+
+  .about-subheading {
+    font-size: 1.08rem;
+    line-height: 1.6;
   }
 
   .back-to-top {
