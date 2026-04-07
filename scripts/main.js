@@ -80,3 +80,47 @@
     closeDropdowns();
   });
 })();
+
+(function () {
+  const carousel = document.querySelector("[data-howto-carousel]");
+  if (!carousel) return;
+
+  const track = carousel.querySelector("[data-howto-track]");
+  const slides = Array.from(track.querySelectorAll(".howto-slide"));
+  const prevButton = carousel.querySelector("[data-howto-prev]");
+  const nextButton = carousel.querySelector("[data-howto-next]");
+  const dots = Array.from(carousel.querySelectorAll(".howto-carousel__dot"));
+
+  let currentIndex = 0;
+
+  function updateCarousel() {
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+    slides.forEach((slide, index) => {
+      slide.classList.toggle("is-active", index === currentIndex);
+    });
+
+    dots.forEach((dot, index) => {
+      dot.classList.toggle("is-active", index === currentIndex);
+    });
+  }
+
+  prevButton.addEventListener("click", function () {
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    updateCarousel();
+  });
+
+  nextButton.addEventListener("click", function () {
+    currentIndex = (currentIndex + 1) % slides.length;
+    updateCarousel();
+  });
+
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", function () {
+      currentIndex = index;
+      updateCarousel();
+    });
+  });
+
+  updateCarousel();
+})();
