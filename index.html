@@ -289,28 +289,76 @@
       <div class="stats-section__inner">
         <h2 class="section-heading" id="stats-heading">統計</h2>
 
-        <div class="stats-section__header">
-          <div class="stats-section__period-control">
-            <span class="stats-section__lead">過去</span>
-            <label class="visually-hidden" for="stats-period-select">ランキングの集計期間</label>
-            <select
-              class="stats-section__period-select"
-              id="stats-period-select"
-              data-ranking-period
-            >
-              <option value="1">1日間</option>
-              <option value="7" selected>7日間</option>
-              <option value="30">1か月間</option>
-              <option value="180">半年間</option>
-              <option value="365">1年間</option>
-            </select>
-            <span class="stats-section__lead">の点字ブロック記録距離ランキング</span>
+        <div class="howto-carousel stats-carousel" data-stats-carousel>
+          <div class="howto-carousel__viewport">
+            <div class="howto-carousel__track" data-stats-track>
+              <article class="howto-slide stats-slide is-active">
+                <div class="stats-slide__body">
+                  <h3 class="howto-slide__title stats-slide__title">StepBy全体の統計</h3>
+
+                  <dl class="stats-summary" data-stats-summary aria-live="polite">
+                    <div class="stats-summary__metric">
+                      <dt>総点字ブロック記録距離</dt>
+                      <dd data-stats-value="totalTactileLengthMeters">読み込み中</dd>
+                    </div>
+                    <div class="stats-summary__metric">
+                      <dt>総道情報投稿件数</dt>
+                      <dd data-stats-value="totalRoadInfoPosts">読み込み中</dd>
+                    </div>
+                    <div class="stats-summary__metric">
+                      <dt>総ユーザー数</dt>
+                      <dd data-stats-value="totalUsers">読み込み中</dd>
+                    </div>
+                  </dl>
+
+                  <p class="stats-status" data-stats-status role="status"></p>
+                </div>
+              </article>
+
+              <article class="howto-slide stats-slide">
+                <div class="stats-slide__body">
+                  <h3 class="howto-slide__title stats-slide__title">点字ブロック記録距離ランキング</h3>
+
+                  <div class="stats-section__period-control">
+                    <span class="stats-section__lead">過去</span>
+                    <label class="visually-hidden" for="stats-period-select">ランキングの集計期間</label>
+                    <select
+                      class="stats-section__period-select"
+                      id="stats-period-select"
+                      data-ranking-period
+                    >
+                      <option value="1">1日間</option>
+                      <option value="7" selected>7日間</option>
+                      <option value="30">1か月間</option>
+                      <option value="180">半年間</option>
+                      <option value="365">1年間</option>
+                    </select>
+                    <span class="stats-section__lead">のランキング</span>
+                  </div>
+
+                  <ol class="tactile-ranking" data-tactile-ranking-list aria-live="polite">
+                    <li class="tactile-ranking__message">ランキングを読み込み中です。</li>
+                  </ol>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="howto-carousel__controls">
+            <button class="howto-carousel__arrow" type="button" data-stats-prev aria-label="前の統計ページ">
+              <img src="assets/icons/bigleft_green.png" alt="" aria-hidden="true">
+            </button>
+
+            <div class="howto-carousel__dots" data-stats-dots aria-label="統計カルーセルのページ位置">
+              <button class="howto-carousel__dot is-active" type="button" aria-label="全体統計へ移動"></button>
+              <button class="howto-carousel__dot" type="button" aria-label="ランキングへ移動"></button>
+            </div>
+
+            <button class="howto-carousel__arrow" type="button" data-stats-next aria-label="次の統計ページ">
+              <img src="assets/icons/bigright_green.png" alt="" aria-hidden="true">
+            </button>
           </div>
         </div>
-
-        <ol class="tactile-ranking" data-tactile-ranking-list aria-live="polite">
-          <li class="tactile-ranking__message">ランキングを読み込み中です。</li>
-        </ol>
       </div>
     </section>
   </main>

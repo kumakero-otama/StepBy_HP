@@ -544,9 +544,59 @@ img {
   scroll-margin-top: calc(var(--header-height) + 16px);
 }
 
-.stats-section__header {
-  max-width: 760px;
+.stats-slide {
+  align-items: flex-start;
+}
+
+.stats-slide__body {
+  width: 100%;
+}
+
+.stats-slide__title {
   margin-bottom: 24px;
+}
+
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid #d6dfdc;
+  border-bottom: 1px solid #d6dfdc;
+}
+
+.stats-summary__metric {
+  min-width: 0;
+  padding: 24px;
+}
+
+.stats-summary__metric + .stats-summary__metric {
+  border-left: 1px solid #d6dfdc;
+}
+
+.stats-summary dt {
+  margin: 0 0 12px;
+  color: #5d6764;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.stats-summary dd {
+  margin: 0;
+  color: #2e7d72;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.stats-status {
+  min-height: 1.7em;
+  margin: 18px 0 0;
+  color: #5d6764;
+  font-weight: 700;
+  line-height: 1.7;
 }
 
 .stats-section__period-control {
@@ -554,6 +604,7 @@ img {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-bottom: 20px;
 }
 
 .stats-section__lead {
@@ -970,6 +1021,19 @@ img {
     grid-column: 3;
     justify-self: start;
     font-size: 1.05rem;
+  }
+
+  .stats-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-summary__metric {
+    padding: 18px 0;
+  }
+
+  .stats-summary__metric + .stats-summary__metric {
+    border-top: 1px solid #d6dfdc;
+    border-left: 0;
   }
 
   .news-grid {

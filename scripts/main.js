@@ -126,15 +126,66 @@
 })();
 
 (function () {
+  const carousel = document.querySelector("[data-stats-carousel]");
+  if (!carousel) return;
+
+  const track = carousel.querySelector("[data-stats-track]");
+  const slides = Array.from(track.querySelectorAll(".howto-slide"));
+  const prevButton = carousel.querySelector("[data-stats-prev]");
+  const nextButton = carousel.querySelector("[data-stats-next]");
+  const dots = Array.from(carousel.querySelectorAll(".howto-carousel__dot"));
+
+  let currentIndex = 0;
+
+  function updateCarousel() {
+    track.style.transform = `translateX(-${currentIndex * 100}%)`;
+
+    slides.forEach((slide, index) => {
+      slide.classList.toggle("is-active", index === currentIndex);
+    });
+
+    dots.forEach((dot, index) => {
+      dot.classList.toggle("is-active", index === currentIndex);
+    });
+  }
+
+  prevButton.addEventListener("click", function () {
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    updateCarousel();
+  });
+
+  nextButton.addEventListener("click", function () {
+    currentIndex = (currentIndex + 1) % slides.length;
+    updateCarousel();
+  });
+
+  dots.forEach((dot, index) => {
+    dot.addEventListener("click", function () {
+      currentIndex = index;
+      updateCarousel();
+    });
+  });
+
+  updateCarousel();
+})();
+
+(function () {
   const config = window.StepBySiteConfig || {};
+  const statsStatus = document.querySelector("[data-stats-status]");
+  const statsValues = {
+    totalTactileLengthMeters: document.querySelector("[data-stats-value='totalTactileLengthMeters']"),
+    totalRoadInfoPosts: document.querySelector("[data-stats-value='totalRoadInfoPosts']"),
+    totalUsers: document.querySelector("[data-stats-value='totalUsers']")
+  };
   const rankingList = document.querySelector("[data-tactile-ranking-list]");
   const periodSelect = document.querySelector("[data-ranking-period]");
 
-  if (!rankingList) return;
+  if (!rankingList && !statsStatus) return;
 
   const defaultRankingDays = 7;
   const rankingLimit = 5;
   const rankingEndpoint = config.api?.tactileRanking || "/api/tactile-ranking";
+  const statsEndpoint = config.api?.stats || getSiblingApiEndpoint("/api/stats");
   const recordsEndpoint = config.api?.records || getSiblingApiEndpoint("/api/records");
   const sessionInfoEndpoint = config.api?.tactileSessionInfo || getSiblingApiEndpoint("/api/tactile-session-info");
   let currentRankingDays = defaultRankingDays;
@@ -223,6 +274,10 @@
     }
 
     return `${Math.round(meters).toLocaleString("ja-JP")} m`;
+  }
+
+  function formatCount(value, unit) {
+    return `${Math.round(toNumber(value)).toLocaleString("ja-JP")}${unit}`;
   }
 
   function getInitial(name) {
@@ -420,6 +475,10 @@
         return apiMessage ? `${statusDetail} / ${apiMessage}` : statusDetail;
       }
 
+      if (contentType.includes("text/html")) {
+        return `${statusDetail} / HTMLのエラーページが返されました。APIのURLを確認してください。`;
+      }
+
       const text = (await response.text()).replace(/\s+/g, " ").trim();
 
       if (text) {
@@ -448,6 +507,77 @@
     }
 
     return response.json();
+  }
+
+  function setStatsStatus(message, detail = "") {
+    if (!statsStatus) return;
+
+    statsStatus.textContent = detail ? `${message} 詳細: ${detail}` : message;
+  }
+
+  function setStatsValue(key, value) {
+    const element = statsValues[key];
+
+    if (element) {
+      element.textContent = value;
+    }
+  }
+
+  async function loadStats() {
+    if (!statsStatus) return;
+
+    setStatsStatus("全体統計を読み込み中です。");
+
+    try {
+      const data = await fetchJson(buildApiUrl(statsEndpoint));
+      const sources = [data, data?.stats, data?.data, data?.data?.stats];
+      const totalTactileLengthMeters = toNumber(
+        getFirstValue(sources, [
+          "totalTactileLengthMeters",
+          "total_tactile_length_meters",
+          "totalTactileDistanceMeters",
+          "total_tactile_distance_meters",
+          "totalTactileLength",
+          "total_tactile_length"
+        ])
+      );
+      const totalRoadInfoPosts = toNumber(
+        getFirstValue(sources, [
+          "totalRoadInfoPosts",
+          "total_road_info_posts",
+          "totalRoadPosts",
+          "total_road_posts",
+          "roadInfoPosts",
+          "road_info_posts",
+          "roadInfoCount",
+          "road_info_count"
+        ])
+      );
+      const totalUsers = toNumber(
+        getFirstValue(sources, [
+          "totalUsers",
+          "total_users",
+          "userCount",
+          "user_count",
+          "activeUsers",
+          "active_users"
+        ])
+      );
+
+      setStatsValue("totalTactileLengthMeters", formatDistance(totalTactileLengthMeters));
+      setStatsValue("totalRoadInfoPosts", formatCount(totalRoadInfoPosts, "件"));
+      setStatsValue("totalUsers", formatCount(totalUsers, "人"));
+      setStatsStatus("");
+    } catch (error) {
+      console.error("Failed to load site stats", error);
+      setStatsValue("totalTactileLengthMeters", "--");
+      setStatsValue("totalRoadInfoPosts", "--");
+      setStatsValue("totalUsers", "--");
+      setStatsStatus(
+        "全体統計を取得できませんでした。",
+        error.detail || error.message || "不明なエラー"
+      );
+    }
   }
 
   async function fetchSessionInfo(sessionId) {
@@ -689,5 +819,6 @@
   });
 
   currentRankingDays = getSelectedRankingDays();
+  loadStats();
   loadRanking();
 })();
