@@ -1,5 +1,5 @@
 window.StepBySiteConfig = {
-  version: "HP: v1.4.0",
+  version: "HP: v1.4.1",
   api: {
     tactileRanking: "/api/tactile-ranking"
   },

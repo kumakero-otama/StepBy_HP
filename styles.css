@@ -651,6 +651,19 @@ img {
   line-height: 1.7;
 }
 
+.tactile-ranking__message-text,
+.tactile-ranking__message-detail {
+  display: block;
+}
+
+.tactile-ranking__message-detail {
+  margin-top: 6px;
+  color: #6c7774;
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
 .back-to-top {
   position: fixed;
   right: 28px;

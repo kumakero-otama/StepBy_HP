@@ -211,11 +211,51 @@
     return candidates.find(Array.isArray) || [];
   }
 
-  function setRankingMessage(message) {
+  function setRankingMessage(message, detail = "") {
     const item = document.createElement("li");
     item.className = "tactile-ranking__message";
-    item.textContent = message;
+
+    const messageElement = document.createElement("span");
+    messageElement.className = "tactile-ranking__message-text";
+    messageElement.textContent = message;
+    item.append(messageElement);
+
+    if (detail) {
+      const detailElement = document.createElement("span");
+      detailElement.className = "tactile-ranking__message-detail";
+      detailElement.textContent = `詳細: ${detail}`;
+      item.append(detailElement);
+    }
+
     rankingList.replaceChildren(item);
+  }
+
+  async function getResponseErrorDetail(response) {
+    const statusDetail = `${response.status} ${response.statusText}`.trim();
+
+    try {
+      const contentType = response.headers.get("content-type") || "";
+
+      if (contentType.includes("application/json")) {
+        const data = await response.json();
+        const apiMessage = getFirstValue(
+          [data, data?.error],
+          ["message", "detail", "error", "code", "status", "type"]
+        );
+
+        return apiMessage ? `${statusDetail} / ${apiMessage}` : statusDetail;
+      }
+
+      const text = (await response.text()).replace(/\s+/g, " ").trim();
+
+      if (text) {
+        return `${statusDetail} / ${text.slice(0, 160)}`;
+      }
+    } catch (error) {
+      console.error("Failed to read tactile ranking error response", error);
+    }
+
+    return statusDetail;
   }
 
   function createAvatar(iconUrl, userName) {
@@ -343,7 +383,10 @@
       });
 
       if (!response.ok) {
-        throw new Error(`Ranking API responded with ${response.status}`);
+        const detail = await getResponseErrorDetail(response);
+        const error = new Error(`Ranking API responded with ${detail}`);
+        error.detail = detail;
+        throw error;
       }
 
       const data = await response.json();
@@ -357,7 +400,10 @@
       rankingList.replaceChildren(...entries.map(createRankingItem));
     } catch (error) {
       console.error("Failed to load tactile ranking", error);
-      setRankingMessage("ランキングを取得できませんでした。時間をおいて再度お試しください。");
+      setRankingMessage(
+        "ランキングを取得できませんでした。",
+        error.detail || error.message || "不明なエラー"
+      );
     } finally {
       rankingList.setAttribute("aria-busy", "false");
     }
