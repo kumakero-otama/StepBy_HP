@@ -175,6 +175,7 @@
   const statsDateLabel = document.querySelector("[data-stats-date-label]");
   const trendChart = document.querySelector("[data-stats-trend-chart]");
   const trendStatus = document.querySelector("[data-stats-trend-status]");
+  const trendPeriodSelect = document.querySelector("[data-stats-trend-period]");
   const statsValues = {
     totalTactileLengthMeters: document.querySelector("[data-stats-value='totalTactileLengthMeters']"),
     totalRoadInfoPosts: document.querySelector("[data-stats-value='totalRoadInfoPosts']"),
@@ -186,13 +187,16 @@
   if (!rankingList && !statsStatus && !trendChart) return;
 
   const defaultRankingDays = 7;
+  const defaultTrendDays = 30;
   const rankingLimit = 5;
   const rankingEndpoint = config.api?.tactileRanking || "/api/tactile-ranking";
   const statsEndpoint = config.api?.stats || getSiblingApiEndpoint("/api/stats");
   const recordsEndpoint = config.api?.records || getSiblingApiEndpoint("/api/records");
   const sessionInfoEndpoint = config.api?.tactileSessionInfo || getSiblingApiEndpoint("/api/tactile-session-info");
   let currentRankingDays = defaultRankingDays;
+  let currentTrendDays = defaultTrendDays;
   let rankingRequestId = 0;
+  let trendRequestId = 0;
 
   function getRankingUrlBase() {
     return new URL(rankingEndpoint, window.location.href);
@@ -240,6 +244,15 @@
   function getSelectedRankingDays() {
     const selectedDays = Number.parseInt(periodSelect?.value, 10);
     return Number.isFinite(selectedDays) && selectedDays > 0 ? selectedDays : defaultRankingDays;
+  }
+
+  function getSelectedTrendDays() {
+    const selectedDays = Number.parseInt(trendPeriodSelect?.value, 10);
+    return Number.isFinite(selectedDays) && selectedDays > 0 ? selectedDays : defaultTrendDays;
+  }
+
+  function getSelectedTrendPeriodLabel() {
+    return trendPeriodSelect?.selectedOptions?.[0]?.textContent?.trim() || `${currentTrendDays}日間`;
   }
 
   function getSelectedPeriodLabel() {
@@ -300,13 +313,19 @@
     return formatDateParam(new Date());
   }
 
-  function getPastWeekDateParams() {
+  function getTrendDateParams(days) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const safeDays = Math.max(Math.round(toNumber(days)), 1);
+    const pointCount = Math.min(safeDays, safeDays <= 10 ? safeDays : 10);
 
-    return Array.from({ length: 7 }, (_, index) => {
+    return Array.from({ length: pointCount }, (_, index) => {
       const date = new Date(today);
-      date.setDate(today.getDate() - (6 - index));
+      const offset =
+        pointCount === 1
+          ? 0
+          : Math.round(((safeDays - 1) * (pointCount - 1 - index)) / (pointCount - 1));
+      date.setDate(today.getDate() - offset);
       return formatDateParam(date);
     });
   }
@@ -339,6 +358,49 @@
     }
 
     return `${Math.round(meters).toLocaleString("ja-JP")}m`;
+  }
+
+  function getNiceAxisStep(rawStep) {
+    if (!Number.isFinite(rawStep) || rawStep <= 0) {
+      return 1;
+    }
+
+    const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+    const normalizedStep = rawStep / magnitude;
+    const niceSteps = [1, 2, 2.5, 5, 10];
+    const niceStep = niceSteps.find((step) => normalizedStep <= step) || 10;
+
+    return niceStep * magnitude;
+  }
+
+  function getTrendAxisValues(maxValue) {
+    const safeMax = Math.max(toNumber(maxValue), 1);
+    let bestAxis = null;
+
+    for (let tickCount = 6; tickCount <= 10; tickCount += 1) {
+      const step = getNiceAxisStep((safeMax * 1.08) / (tickCount - 1));
+      const axisMax = step * (tickCount - 1);
+      const overhead = axisMax - safeMax;
+      const balance = Math.abs(tickCount - 8) * step;
+      const score = overhead + balance;
+
+      if (!bestAxis || score < bestAxis.score) {
+        bestAxis = {
+          axisMax,
+          score,
+          values: Array.from({ length: tickCount }, (_, index) => step * index)
+        };
+      }
+    }
+
+    return bestAxis.values;
+  }
+
+  function formatTrendDetailDistance(meters) {
+    return `${(toNumber(meters) / 1000).toLocaleString("ja-JP", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3
+    })}km`;
   }
 
   function formatMonthDayLabel(dateParam) {
@@ -677,7 +739,8 @@
     const plotWidth = width - padding.left - padding.right;
     const plotHeight = height - padding.top - padding.bottom;
     const maxValue = Math.max(...points.map((point) => point.value), 1);
-    const yMax = maxValue * 1.12;
+    const axisValues = getTrendAxisValues(maxValue);
+    const yMax = axisValues[axisValues.length - 1];
     const baselineY = padding.top + plotHeight;
     const getX = (index) => {
       if (points.length === 1) {
@@ -724,7 +787,7 @@
 
     function showTooltip(point) {
       const dateText = formatMonthDayLabel(point.date);
-      const distanceText = formatAxisDistance(point.value);
+      const distanceText = formatTrendDetailDistance(point.value);
       const tooltipWidth = Math.max(104, Math.max(dateText.length, distanceText.length) * 12 + 28);
       const tooltipHeight = 56;
       const tooltipGap = 16;
@@ -773,8 +836,7 @@
       }, 520);
     }
 
-    Array.from({ length: 5 }, (_, index) => {
-      const value = (yMax / 4) * index;
+    axisValues.forEach((value) => {
       const y = baselineY - (value / yMax) * plotHeight;
       const gridLine = createSvgElement("line", {
         class: "stats-trend__grid-line",
@@ -833,7 +895,7 @@
         class: "stats-trend__point-target",
         tabindex: "0",
         role: "button",
-        "aria-label": `${formatMonthDayLabel(point.date)} ${formatAxisDistance(point.value)}`
+        "aria-label": `${formatMonthDayLabel(point.date)} ${formatTrendDetailDistance(point.value)}`
       });
       const touchTarget = createSvgElement("circle", {
         class: "stats-trend__point-hit-area",
@@ -916,11 +978,15 @@
   async function loadStatsTrend() {
     if (!trendChart) return;
 
-    setTrendMessage("推移を読み込み中です。");
+    const requestId = ++trendRequestId;
+    const trendDays = currentTrendDays;
+
+    trendChart.setAttribute("aria-busy", "true");
+    setTrendMessage(`過去${getSelectedTrendPeriodLabel()}の推移を読み込み中です。`);
     setTrendStatus("");
 
     try {
-      const dates = getPastWeekDateParams();
+      const dates = getTrendDateParams(trendDays);
       const statsList = await Promise.all(
         dates.map(async (date) => {
           const data = await fetchJson(buildStatsUrl(date));
@@ -932,11 +998,24 @@
           };
         })
       );
+
+      if (requestId !== trendRequestId) {
+        return;
+      }
+
       renderStatsTrend(statsList);
     } catch (error) {
+      if (requestId !== trendRequestId) {
+        return;
+      }
+
       console.error("Failed to load stats trend", error);
       setTrendMessage("推移を取得できませんでした。");
       setTrendStatus("推移を取得できませんでした。", error.detail || error.message || "不明なエラー");
+    } finally {
+      if (requestId === trendRequestId) {
+        trendChart.setAttribute("aria-busy", "false");
+      }
     }
   }
 
@@ -1178,7 +1257,13 @@
     loadRanking();
   });
 
+  trendPeriodSelect?.addEventListener("change", () => {
+    currentTrendDays = getSelectedTrendDays();
+    loadStatsTrend();
+  });
+
   currentRankingDays = getSelectedRankingDays();
+  currentTrendDays = getSelectedTrendDays();
   loadStats();
   loadStatsTrend();
   loadRanking();

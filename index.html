@@ -347,6 +347,22 @@
                 <div class="stats-slide__body">
                   <h3 class="howto-slide__title stats-slide__title">総点字ブロック記録距離推移</h3>
 
+                  <div class="stats-section__period-control">
+                    <span class="stats-section__lead">過去</span>
+                    <label class="visually-hidden" for="stats-trend-period-select">推移グラフの表示期間</label>
+                    <select
+                      class="stats-section__period-select"
+                      id="stats-trend-period-select"
+                      data-stats-trend-period
+                    >
+                      <option value="7">7日間</option>
+                      <option value="30" selected>1か月間</option>
+                      <option value="180">半年間</option>
+                      <option value="365">1年間</option>
+                    </select>
+                    <span class="stats-section__lead">の推移</span>
+                  </div>
+
                   <div
                     class="stats-trend"
                     data-stats-trend-chart
