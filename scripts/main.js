@@ -134,12 +134,44 @@
   const rankingDays = 7;
   const rankingLimit = 5;
   const rankingEndpoint = config.api?.tactileRanking || "/api/tactile-ranking";
+  const recordsEndpoint = config.api?.records || getSiblingApiEndpoint("/api/records");
+  const sessionInfoEndpoint = config.api?.tactileSessionInfo || getSiblingApiEndpoint("/api/tactile-session-info");
+
+  function getRankingUrlBase() {
+    return new URL(rankingEndpoint, window.location.href);
+  }
+
+  function getSiblingApiEndpoint(path) {
+    return new URL(path, getRankingUrlBase().origin).href;
+  }
 
   function buildRankingUrl() {
-    const url = new URL(rankingEndpoint, window.location.href);
-    url.searchParams.set("days", String(rankingDays));
-    url.searchParams.set("limit", String(rankingLimit));
+    return buildApiUrl(rankingEndpoint, {
+      days: rankingDays,
+      limit: rankingLimit
+    });
+  }
+
+  function buildApiUrl(endpoint, params = {}) {
+    const url = new URL(endpoint, window.location.href);
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "") {
+        url.searchParams.set(key, String(value));
+      }
+    });
+
     return url;
+  }
+
+  function resolveApiAssetUrl(value) {
+    if (!value) return "";
+
+    try {
+      return new URL(value, getRankingUrlBase().origin).href;
+    } catch (error) {
+      return value;
+    }
   }
 
   function getFirstValue(sources, keys) {
@@ -211,6 +243,136 @@
     return candidates.find(Array.isArray) || [];
   }
 
+  function extractRecordEntries(data) {
+    const candidates = [
+      data,
+      data?.paths,
+      data?.records,
+      data?.items,
+      data?.results,
+      data?.data,
+      data?.data?.paths,
+      data?.data?.records,
+      data?.data?.items,
+      data?.data?.results
+    ];
+
+    return candidates.find(Array.isArray) || [];
+  }
+
+  function getRecordGeometry(record) {
+    const rawGeometry = getFirstValue(
+      [record],
+      ["geom_geojson", "geomGeojson", "geometry", "geojson", "path", "line"]
+    );
+
+    if (!rawGeometry) return null;
+
+    if (typeof rawGeometry === "object") {
+      return rawGeometry;
+    }
+
+    try {
+      return JSON.parse(rawGeometry);
+    } catch (error) {
+      console.error("Failed to parse tactile record geometry", error);
+      return null;
+    }
+  }
+
+  function toRadians(degrees) {
+    return (degrees * Math.PI) / 180;
+  }
+
+  function getCoordinateDistanceMeters(first, second) {
+    const firstLongitude = toNumber(first?.[0]);
+    const firstLatitude = toNumber(first?.[1]);
+    const secondLongitude = toNumber(second?.[0]);
+    const secondLatitude = toNumber(second?.[1]);
+
+    if (
+      !Number.isFinite(firstLongitude) ||
+      !Number.isFinite(firstLatitude) ||
+      !Number.isFinite(secondLongitude) ||
+      !Number.isFinite(secondLatitude)
+    ) {
+      return 0;
+    }
+
+    const earthRadiusMeters = 6371008.8;
+    const latitudeDelta = toRadians(secondLatitude - firstLatitude);
+    const longitudeDelta = toRadians(secondLongitude - firstLongitude);
+    const firstLatitudeRadians = toRadians(firstLatitude);
+    const secondLatitudeRadians = toRadians(secondLatitude);
+    const haversine =
+      Math.sin(latitudeDelta / 2) ** 2 +
+      Math.cos(firstLatitudeRadians) *
+        Math.cos(secondLatitudeRadians) *
+        Math.sin(longitudeDelta / 2) ** 2;
+
+    return earthRadiusMeters * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+  }
+
+  function getLineDistanceMeters(coordinates) {
+    if (!Array.isArray(coordinates) || coordinates.length < 2) {
+      return 0;
+    }
+
+    return coordinates.reduce((total, coordinate, index) => {
+      if (index === 0) return 0;
+      return total + getCoordinateDistanceMeters(coordinates[index - 1], coordinate);
+    }, 0);
+  }
+
+  function getGeometryDistanceMeters(geometry) {
+    if (!geometry || typeof geometry !== "object") return 0;
+
+    if (geometry.type === "Feature") {
+      return getGeometryDistanceMeters(geometry.geometry);
+    }
+
+    if (geometry.type === "LineString") {
+      return getLineDistanceMeters(geometry.coordinates);
+    }
+
+    if (geometry.type === "MultiLineString" && Array.isArray(geometry.coordinates)) {
+      return geometry.coordinates.reduce((total, coordinates) => {
+        return total + getLineDistanceMeters(coordinates);
+      }, 0);
+    }
+
+    if (geometry.type === "GeometryCollection" && Array.isArray(geometry.geometries)) {
+      return geometry.geometries.reduce((total, childGeometry) => {
+        return total + getGeometryDistanceMeters(childGeometry);
+      }, 0);
+    }
+
+    return 0;
+  }
+
+  function getRecordDistanceMeters(record) {
+    const providedDistance = toNumber(
+      getFirstValue(
+        [record],
+        [
+          "distance_m",
+          "distanceM",
+          "distance_meters",
+          "distanceMeters",
+          "meters",
+          "length_m",
+          "lengthM"
+        ]
+      )
+    );
+
+    if (providedDistance > 0) {
+      return providedDistance;
+    }
+
+    return getGeometryDistanceMeters(getRecordGeometry(record));
+  }
+
   function setRankingMessage(message, detail = "") {
     const item = document.createElement("li");
     item.className = "tactile-ranking__message";
@@ -258,6 +420,95 @@
     return statusDetail;
   }
 
+  async function fetchJson(url) {
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      const detail = await getResponseErrorDetail(response);
+      const error = new Error(`API responded with ${detail}`);
+      error.detail = detail;
+      error.status = response.status;
+      throw error;
+    }
+
+    return response.json();
+  }
+
+  async function fetchSessionInfo(sessionId) {
+    if (!sessionId) return null;
+
+    try {
+      const data = await fetchJson(buildApiUrl(sessionInfoEndpoint, { sessionId }));
+      return data?.session || data?.data?.session || null;
+    } catch (error) {
+      console.error("Failed to load tactile session info", error);
+      return null;
+    }
+  }
+
+  async function loadRankingFromRecords() {
+    const data = await fetchJson(buildApiUrl(recordsEndpoint));
+    const records = extractRecordEntries(data);
+    const cutoffTime = Date.now() - rankingDays * 24 * 60 * 60 * 1000;
+    const users = new Map();
+
+    records.forEach((record) => {
+      const recordedAt = Date.parse(
+        getFirstValue([record], ["started_at", "startedAt", "created_at", "createdAt"])
+      );
+
+      if (!Number.isFinite(recordedAt) || recordedAt < cutoffTime) {
+        return;
+      }
+
+      const userId = String(getFirstValue([record], ["user_id", "userId", "userid", "uid"]));
+      const sessionId = getFirstValue([record], ["session_id", "sessionId"]);
+      const distanceMeters = getRecordDistanceMeters(record);
+
+      if (!userId || distanceMeters <= 0) {
+        return;
+      }
+
+      const user = users.get(userId) || {
+        userId,
+        sessionId,
+        distanceMeters: 0
+      };
+
+      user.distanceMeters += distanceMeters;
+
+      if (!user.sessionId && sessionId) {
+        user.sessionId = sessionId;
+      }
+
+      users.set(userId, user);
+    });
+
+    const topUsers = Array.from(users.values())
+      .sort((first, second) => second.distanceMeters - first.distanceMeters)
+      .slice(0, rankingLimit);
+
+    const sessionInfos = await Promise.all(
+      topUsers.map((user) => fetchSessionInfo(user.sessionId))
+    );
+
+    return topUsers.map((user, index) => {
+      const sessionInfo = sessionInfos[index] || {};
+
+      return {
+        rank: index + 1,
+        userId: user.userId,
+        username: sessionInfo.username || `ユーザー${user.userId}`,
+        iconUrl: sessionInfo.iconUrl || "",
+        distanceMeters: user.distanceMeters
+      };
+    });
+  }
+
   function createAvatar(iconUrl, userName) {
     const avatar = document.createElement("span");
     avatar.className = "tactile-ranking__avatar";
@@ -268,7 +519,7 @@
 
     if (iconUrl) {
       const image = document.createElement("img");
-      image.src = iconUrl;
+      image.src = resolveApiAssetUrl(iconUrl);
       image.alt = `${userName}のアイコン`;
       image.loading = "lazy";
       image.referrerPolicy = "no-referrer";
@@ -376,21 +627,19 @@
     rankingList.setAttribute("aria-busy", "true");
 
     try {
-      const response = await fetch(buildRankingUrl(), {
-        headers: {
-          Accept: "application/json"
+      let entries = [];
+
+      try {
+        const data = await fetchJson(buildRankingUrl());
+        entries = extractRankingEntries(data).slice(0, rankingLimit);
+      } catch (error) {
+        if (error.status !== 404) {
+          throw error;
         }
-      });
 
-      if (!response.ok) {
-        const detail = await getResponseErrorDetail(response);
-        const error = new Error(`Ranking API responded with ${detail}`);
-        error.detail = detail;
-        throw error;
+        console.warn("Tactile ranking API was not found. Falling back to records API.", error);
+        entries = await loadRankingFromRecords();
       }
-
-      const data = await response.json();
-      const entries = extractRankingEntries(data).slice(0, rankingLimit);
 
       if (entries.length === 0) {
         setRankingMessage("過去7日間の記録はまだありません。");
