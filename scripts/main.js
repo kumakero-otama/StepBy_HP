@@ -175,7 +175,6 @@
   const statsDateLabel = document.querySelector("[data-stats-date-label]");
   const trendChart = document.querySelector("[data-stats-trend-chart]");
   const trendStatus = document.querySelector("[data-stats-trend-status]");
-  const trendSummary = document.querySelector("[data-stats-trend-summary]");
   const statsValues = {
     totalTactileLengthMeters: document.querySelector("[data-stats-value='totalTactileLengthMeters']"),
     totalRoadInfoPosts: document.querySelector("[data-stats-value='totalRoadInfoPosts']"),
@@ -340,6 +339,16 @@
     }
 
     return `${Math.round(meters).toLocaleString("ja-JP")}m`;
+  }
+
+  function formatMonthDayLabel(dateParam) {
+    const parts = String(dateParam).split("-").map((part) => Number.parseInt(part, 10));
+
+    if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) {
+      return dateParam;
+    }
+
+    return `${parts[1]}月${parts[2]}日`;
   }
 
   function getInitial(name) {
@@ -687,6 +696,8 @@
       .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
       .join(" ");
     const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x.toFixed(2)} ${baselineY} L ${coordinates[0].x.toFixed(2)} ${baselineY} Z`;
+    let longPressTimer = 0;
+    let tooltipGroup;
     const svg = createSvgElement("svg", {
       class: "stats-trend__svg",
       viewBox: `0 0 ${width} ${height}`,
@@ -694,29 +705,73 @@
       "aria-labelledby": "stats-trend-title stats-trend-desc"
     });
     const title = createSvgElement("title", { id: "stats-trend-title" });
-    title.textContent = "過去一週間の総点字ブロック記録距離の推移";
+    title.textContent = "総点字ブロック記録距離推移";
     const desc = createSvgElement("desc", { id: "stats-trend-desc" });
     desc.textContent = `${formatDateLabel(points[0].date)}から${formatDateLabel(points[points.length - 1].date)}までの総点字ブロック記録距離です。`;
 
     svg.append(title, desc);
 
-    const yAxisTitle = createSvgElement("text", {
-      class: "stats-trend__axis-title",
-      x: 18,
-      y: padding.top + plotHeight / 2,
-      transform: `rotate(-90 18 ${padding.top + plotHeight / 2})`,
-      "text-anchor": "middle"
-    });
-    yAxisTitle.textContent = "記録距離";
-    const xAxisTitle = createSvgElement("text", {
-      class: "stats-trend__axis-title",
-      x: padding.left + plotWidth / 2,
-      y: height - 2,
-      "text-anchor": "middle"
-    });
-    xAxisTitle.textContent = "日付";
+    function hideTooltip() {
+      tooltipGroup?.setAttribute("display", "none");
+    }
 
-    svg.append(yAxisTitle, xAxisTitle);
+    function clearLongPressTimer() {
+      if (longPressTimer) {
+        window.clearTimeout(longPressTimer);
+        longPressTimer = 0;
+      }
+    }
+
+    function showTooltip(point) {
+      const dateText = formatMonthDayLabel(point.date);
+      const distanceText = formatAxisDistance(point.value);
+      const tooltipWidth = Math.max(104, Math.max(dateText.length, distanceText.length) * 12 + 28);
+      const tooltipHeight = 56;
+      const tooltipGap = 16;
+      const tooltipX = Math.min(
+        Math.max(point.x - tooltipWidth / 2, 8),
+        width - tooltipWidth - 8
+      );
+      const tooltipY =
+        point.y - tooltipHeight - tooltipGap < 8
+          ? point.y + tooltipGap
+          : point.y - tooltipHeight - tooltipGap;
+      const rect = createSvgElement("rect", {
+        class: "stats-trend__tooltip-box",
+        x: tooltipX,
+        y: tooltipY,
+        width: tooltipWidth,
+        height: tooltipHeight,
+        rx: 10,
+        ry: 10
+      });
+      const dateLine = createSvgElement("text", {
+        class: "stats-trend__tooltip-text",
+        x: tooltipX + tooltipWidth / 2,
+        y: tooltipY + 22,
+        "text-anchor": "middle"
+      });
+      const distanceLine = createSvgElement("text", {
+        class: "stats-trend__tooltip-text stats-trend__tooltip-text--distance",
+        x: tooltipX + tooltipWidth / 2,
+        y: tooltipY + 42,
+        "text-anchor": "middle"
+      });
+
+      dateLine.textContent = dateText;
+      distanceLine.textContent = distanceText;
+      tooltipGroup.replaceChildren(rect, dateLine, distanceLine);
+      tooltipGroup.removeAttribute("display");
+    }
+
+    function startLongPress(point) {
+      clearLongPressTimer();
+      hideTooltip();
+      longPressTimer = window.setTimeout(() => {
+        longPressTimer = 0;
+        showTooltip(point);
+      }, 520);
+    }
 
     Array.from({ length: 5 }, (_, index) => {
       const value = (yMax / 4) * index;
@@ -774,17 +829,55 @@
     );
 
     coordinates.forEach((point) => {
+      const markerGroup = createSvgElement("g", {
+        class: "stats-trend__point-target",
+        tabindex: "0",
+        role: "button",
+        "aria-label": `${formatMonthDayLabel(point.date)} ${formatAxisDistance(point.value)}`
+      });
+      const touchTarget = createSvgElement("circle", {
+        class: "stats-trend__point-hit-area",
+        cx: point.x,
+        cy: point.y,
+        r: 18
+      });
       const marker = createSvgElement("circle", {
         class: "stats-trend__point",
         cx: point.x,
         cy: point.y,
         r: 5
       });
-      const markerTitle = createSvgElement("title");
 
-      markerTitle.textContent = `${formatDateLabel(point.date)}: ${formatDistance(point.value)}`;
-      marker.append(markerTitle);
-      svg.append(marker);
+      markerGroup.append(touchTarget, marker);
+      markerGroup.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        startLongPress(point);
+      });
+      markerGroup.addEventListener("pointerup", clearLongPressTimer);
+      markerGroup.addEventListener("pointercancel", clearLongPressTimer);
+      markerGroup.addEventListener("pointerleave", clearLongPressTimer);
+      markerGroup.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+      });
+      markerGroup.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          showTooltip(point);
+        }
+      });
+      svg.append(markerGroup);
+    });
+
+    tooltipGroup = createSvgElement("g", {
+      class: "stats-trend__tooltip",
+      display: "none"
+    });
+    svg.append(tooltipGroup);
+    svg.addEventListener("pointerdown", (event) => {
+      if (!event.target.closest(".stats-trend__point-target")) {
+        clearLongPressTimer();
+        hideTooltip();
+      }
     });
 
     trendChart.replaceChildren(svg);
@@ -839,13 +932,7 @@
           };
         })
       );
-      const firstPoint = statsList[0];
-      const lastPoint = statsList[statsList.length - 1];
-
       renderStatsTrend(statsList);
-      if (trendSummary) {
-        trendSummary.textContent = `${formatDateLabel(firstPoint.date)}から${formatDateLabel(lastPoint.date)}まで: ${formatDistance(firstPoint.value)} → ${formatDistance(lastPoint.value)}`;
-      }
     } catch (error) {
       console.error("Failed to load stats trend", error);
       setTrendMessage("推移を取得できませんでした。");

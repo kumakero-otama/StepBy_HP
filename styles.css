@@ -652,24 +652,48 @@ img {
   stroke-width: 4;
 }
 
+.stats-trend__point-target {
+  cursor: pointer;
+  outline: none;
+  touch-action: none;
+}
+
+.stats-trend__point-target:focus-visible .stats-trend__point {
+  stroke: #1d6f65;
+  stroke-width: 5;
+}
+
+.stats-trend__point-hit-area {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: all;
+}
+
+.stats-trend__tooltip {
+  pointer-events: none;
+}
+
+.stats-trend__tooltip-box {
+  fill: #ffffff;
+  stroke: #d6dfdc;
+  stroke-width: 1;
+  filter: drop-shadow(0 8px 16px rgba(16, 52, 48, 0.16));
+}
+
+.stats-trend__tooltip-text {
+  fill: #183633;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.stats-trend__tooltip-text--distance {
+  fill: #2e7d72;
+}
+
 .stats-trend__axis-label {
   fill: #5d6764;
   font-size: 13px;
   font-weight: 800;
-}
-
-.stats-trend__axis-title {
-  fill: #183633;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.stats-trend__summary {
-  margin: 14px 0 0;
-  color: #183633;
-  font-size: 1rem;
-  font-weight: 800;
-  line-height: 1.6;
 }
 
 .stats-trend__message {
