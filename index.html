@@ -161,7 +161,7 @@
           <span>アプリの使い方</span>
           <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
         </a>
-        <a class="guide-nav__item" href="#">
+        <a class="guide-nav__item" href="#stats-section">
           <span>統計</span>
           <img src="assets/icons/down_1fgray.png" alt="" aria-hidden="true">
         </a>
@@ -282,6 +282,20 @@
             </button>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="stats-section" id="stats-section" aria-labelledby="stats-heading">
+      <div class="stats-section__inner">
+        <h2 class="section-heading" id="stats-heading">統計</h2>
+
+        <div class="stats-section__header">
+          <p class="stats-section__lead">過去7日間の点字ブロック記録距離ランキング</p>
+        </div>
+
+        <ol class="tactile-ranking" data-tactile-ranking-list aria-live="polite">
+          <li class="tactile-ranking__message">ランキングを読み込み中です。</li>
+        </ol>
       </div>
     </section>
   </main>
