@@ -556,6 +556,14 @@ img {
   margin-bottom: 24px;
 }
 
+.stats-slide__caption {
+  margin: -12px 0 20px;
+  color: #5d6764;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
 .stats-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -594,6 +602,82 @@ img {
 .stats-status {
   min-height: 1.7em;
   margin: 18px 0 0;
+  color: #5d6764;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.stats-status--trend {
+  margin-top: 10px;
+}
+
+.stats-trend {
+  width: 100%;
+  min-height: 280px;
+  overflow-x: auto;
+}
+
+.stats-trend__svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+}
+
+.stats-trend__grid-line {
+  stroke: #d6dfdc;
+  stroke-width: 1;
+}
+
+.stats-trend__tick-line {
+  stroke: #eef3f1;
+  stroke-width: 1;
+}
+
+.stats-trend__area {
+  fill: rgba(46, 158, 143, 0.12);
+}
+
+.stats-trend__line {
+  fill: none;
+  stroke: #2e9e8f;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+}
+
+.stats-trend__point {
+  fill: #ffffff;
+  stroke: #2e9e8f;
+  stroke-width: 4;
+}
+
+.stats-trend__axis-label {
+  fill: #5d6764;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.stats-trend__axis-title {
+  fill: #183633;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.stats-trend__summary {
+  margin: 14px 0 0;
+  color: #183633;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.stats-trend__message {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px solid #d6dfdc;
+  border-radius: 8px;
+  background: #f8fbfa;
   color: #5d6764;
   font-weight: 700;
   line-height: 1.7;

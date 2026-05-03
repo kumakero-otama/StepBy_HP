@@ -295,6 +295,7 @@
               <article class="howto-slide stats-slide is-active">
                 <div class="stats-slide__body">
                   <h3 class="howto-slide__title stats-slide__title">StepBy全体の統計</h3>
+                  <p class="stats-slide__caption" data-stats-date-label>今日時点の累計</p>
 
                   <dl class="stats-summary" data-stats-summary aria-live="polite">
                     <div class="stats-summary__metric">
@@ -341,6 +342,24 @@
                   </ol>
                 </div>
               </article>
+
+              <article class="howto-slide stats-slide">
+                <div class="stats-slide__body">
+                  <h3 class="howto-slide__title stats-slide__title">過去一週間の総点字ブロック記録距離の推移</h3>
+
+                  <div
+                    class="stats-trend"
+                    data-stats-trend-chart
+                    aria-live="polite"
+                    aria-label="過去一週間の総点字ブロック記録距離の推移"
+                  >
+                    <p class="stats-trend__message">推移を読み込み中です。</p>
+                  </div>
+
+                  <p class="stats-trend__summary" data-stats-trend-summary></p>
+                  <p class="stats-status stats-status--trend" data-stats-trend-status role="status"></p>
+                </div>
+              </article>
             </div>
           </div>
 
@@ -352,6 +371,7 @@
             <div class="howto-carousel__dots" data-stats-dots aria-label="統計カルーセルのページ位置">
               <button class="howto-carousel__dot is-active" type="button" aria-label="全体統計へ移動"></button>
               <button class="howto-carousel__dot" type="button" aria-label="ランキングへ移動"></button>
+              <button class="howto-carousel__dot" type="button" aria-label="推移グラフへ移動"></button>
             </div>
 
             <button class="howto-carousel__arrow" type="button" data-stats-next aria-label="次の統計ページ">

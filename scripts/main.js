@@ -172,6 +172,10 @@
 (function () {
   const config = window.StepBySiteConfig || {};
   const statsStatus = document.querySelector("[data-stats-status]");
+  const statsDateLabel = document.querySelector("[data-stats-date-label]");
+  const trendChart = document.querySelector("[data-stats-trend-chart]");
+  const trendStatus = document.querySelector("[data-stats-trend-status]");
+  const trendSummary = document.querySelector("[data-stats-trend-summary]");
   const statsValues = {
     totalTactileLengthMeters: document.querySelector("[data-stats-value='totalTactileLengthMeters']"),
     totalRoadInfoPosts: document.querySelector("[data-stats-value='totalRoadInfoPosts']"),
@@ -180,7 +184,7 @@
   const rankingList = document.querySelector("[data-tactile-ranking-list]");
   const periodSelect = document.querySelector("[data-ranking-period]");
 
-  if (!rankingList && !statsStatus) return;
+  if (!rankingList && !statsStatus && !trendChart) return;
 
   const defaultRankingDays = 7;
   const rankingLimit = 5;
@@ -203,6 +207,12 @@
     return buildApiUrl(rankingEndpoint, {
       days: currentRankingDays,
       limit: rankingLimit
+    });
+  }
+
+  function buildStatsUrl(date) {
+    return buildApiUrl(statsEndpoint, {
+      date
     });
   }
 
@@ -278,6 +288,58 @@
 
   function formatCount(value, unit) {
     return `${Math.round(toNumber(value)).toLocaleString("ja-JP")}${unit}`;
+  }
+
+  function formatDateParam(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function getTodayDateParam() {
+    return formatDateParam(new Date());
+  }
+
+  function getPastWeekDateParams() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() - (6 - index));
+      return formatDateParam(date);
+    });
+  }
+
+  function formatDateLabel(dateParam) {
+    const parts = String(dateParam).split("-").map((part) => Number.parseInt(part, 10));
+
+    if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) {
+      return dateParam;
+    }
+
+    return `${parts[0]}/${parts[1]}/${parts[2]}`;
+  }
+
+  function formatShortDateLabel(dateParam) {
+    const parts = String(dateParam).split("-").map((part) => Number.parseInt(part, 10));
+
+    if (parts.length !== 3 || parts.some((part) => !Number.isFinite(part))) {
+      return dateParam;
+    }
+
+    return `${parts[1]}/${parts[2]}`;
+  }
+
+  function formatAxisDistance(meters) {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toLocaleString("ja-JP", {
+        maximumFractionDigits: meters >= 10000 ? 0 : 1
+      })}km`;
+    }
+
+    return `${Math.round(meters).toLocaleString("ja-JP")}m`;
   }
 
   function getInitial(name) {
@@ -515,6 +577,12 @@
     statsStatus.textContent = detail ? `${message} 詳細: ${detail}` : message;
   }
 
+  function setTrendStatus(message, detail = "") {
+    if (!trendStatus) return;
+
+    trendStatus.textContent = detail ? `${message} 詳細: ${detail}` : message;
+  }
+
   function setStatsValue(key, value) {
     const element = statsValues[key];
 
@@ -523,15 +591,11 @@
     }
   }
 
-  async function loadStats() {
-    if (!statsStatus) return;
+  function parseStatsData(data) {
+    const sources = [data, data?.stats, data?.data, data?.data?.stats];
 
-    setStatsStatus("全体統計を読み込み中です。");
-
-    try {
-      const data = await fetchJson(buildApiUrl(statsEndpoint));
-      const sources = [data, data?.stats, data?.data, data?.data?.stats];
-      const totalTactileLengthMeters = toNumber(
+    return {
+      totalTactileLengthMeters: toNumber(
         getFirstValue(sources, [
           "totalTactileLengthMeters",
           "total_tactile_length_meters",
@@ -540,8 +604,8 @@
           "totalTactileLength",
           "total_tactile_length"
         ])
-      );
-      const totalRoadInfoPosts = toNumber(
+      ),
+      totalRoadInfoPosts: toNumber(
         getFirstValue(sources, [
           "totalRoadInfoPosts",
           "total_road_info_posts",
@@ -552,8 +616,8 @@
           "roadInfoCount",
           "road_info_count"
         ])
-      );
-      const totalUsers = toNumber(
+      ),
+      totalUsers: toNumber(
         getFirstValue(sources, [
           "totalUsers",
           "total_users",
@@ -562,11 +626,187 @@
           "activeUsers",
           "active_users"
         ])
-      );
+      )
+    };
+  }
 
-      setStatsValue("totalTactileLengthMeters", formatDistance(totalTactileLengthMeters));
-      setStatsValue("totalRoadInfoPosts", formatCount(totalRoadInfoPosts, "件"));
-      setStatsValue("totalUsers", formatCount(totalUsers, "人"));
+  function setTrendMessage(message) {
+    if (!trendChart) return;
+
+    const messageElement = document.createElement("p");
+    messageElement.className = "stats-trend__message";
+    messageElement.textContent = message;
+    trendChart.replaceChildren(messageElement);
+  }
+
+  function createSvgElement(name, attributes = {}) {
+    const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+
+    Object.entries(attributes).forEach(([key, value]) => {
+      element.setAttribute(key, String(value));
+    });
+
+    return element;
+  }
+
+  function renderStatsTrend(points) {
+    if (!trendChart) return;
+
+    if (points.length === 0) {
+      setTrendMessage("表示できる推移データがありません。");
+      return;
+    }
+
+    const width = 640;
+    const height = 280;
+    const padding = {
+      top: 24,
+      right: 24,
+      bottom: 48,
+      left: 78
+    };
+    const plotWidth = width - padding.left - padding.right;
+    const plotHeight = height - padding.top - padding.bottom;
+    const maxValue = Math.max(...points.map((point) => point.value), 1);
+    const yMax = maxValue * 1.12;
+    const baselineY = padding.top + plotHeight;
+    const getX = (index) => {
+      if (points.length === 1) {
+        return padding.left + plotWidth / 2;
+      }
+
+      return padding.left + (plotWidth / (points.length - 1)) * index;
+    };
+    const getY = (value) => baselineY - (value / yMax) * plotHeight;
+    const coordinates = points.map((point, index) => ({
+      ...point,
+      x: getX(index),
+      y: getY(point.value)
+    }));
+    const linePath = coordinates
+      .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
+      .join(" ");
+    const areaPath = `${linePath} L ${coordinates[coordinates.length - 1].x.toFixed(2)} ${baselineY} L ${coordinates[0].x.toFixed(2)} ${baselineY} Z`;
+    const svg = createSvgElement("svg", {
+      class: "stats-trend__svg",
+      viewBox: `0 0 ${width} ${height}`,
+      role: "img",
+      "aria-labelledby": "stats-trend-title stats-trend-desc"
+    });
+    const title = createSvgElement("title", { id: "stats-trend-title" });
+    title.textContent = "過去一週間の総点字ブロック記録距離の推移";
+    const desc = createSvgElement("desc", { id: "stats-trend-desc" });
+    desc.textContent = `${formatDateLabel(points[0].date)}から${formatDateLabel(points[points.length - 1].date)}までの総点字ブロック記録距離です。`;
+
+    svg.append(title, desc);
+
+    const yAxisTitle = createSvgElement("text", {
+      class: "stats-trend__axis-title",
+      x: 18,
+      y: padding.top + plotHeight / 2,
+      transform: `rotate(-90 18 ${padding.top + plotHeight / 2})`,
+      "text-anchor": "middle"
+    });
+    yAxisTitle.textContent = "記録距離";
+    const xAxisTitle = createSvgElement("text", {
+      class: "stats-trend__axis-title",
+      x: padding.left + plotWidth / 2,
+      y: height - 2,
+      "text-anchor": "middle"
+    });
+    xAxisTitle.textContent = "日付";
+
+    svg.append(yAxisTitle, xAxisTitle);
+
+    Array.from({ length: 5 }, (_, index) => {
+      const value = (yMax / 4) * index;
+      const y = baselineY - (value / yMax) * plotHeight;
+      const gridLine = createSvgElement("line", {
+        class: "stats-trend__grid-line",
+        x1: padding.left,
+        y1: y,
+        x2: width - padding.right,
+        y2: y
+      });
+      const label = createSvgElement("text", {
+        class: "stats-trend__axis-label stats-trend__axis-label--y",
+        x: padding.left - 12,
+        y: y + 5,
+        "text-anchor": "end"
+      });
+
+      label.textContent = formatAxisDistance(value);
+      svg.append(gridLine, label);
+    });
+
+    coordinates.forEach((point, index) => {
+      const label = createSvgElement("text", {
+        class: "stats-trend__axis-label stats-trend__axis-label--x",
+        x: point.x,
+        y: height - 18,
+        "text-anchor": "middle"
+      });
+
+      label.textContent = formatShortDateLabel(point.date);
+      svg.append(label);
+
+      if (index > 0 && index < coordinates.length - 1) {
+        const tick = createSvgElement("line", {
+          class: "stats-trend__tick-line",
+          x1: point.x,
+          y1: padding.top,
+          x2: point.x,
+          y2: baselineY
+        });
+        svg.append(tick);
+      }
+    });
+
+    svg.append(
+      createSvgElement("path", {
+        class: "stats-trend__area",
+        d: areaPath
+      }),
+      createSvgElement("path", {
+        class: "stats-trend__line",
+        d: linePath
+      })
+    );
+
+    coordinates.forEach((point) => {
+      const marker = createSvgElement("circle", {
+        class: "stats-trend__point",
+        cx: point.x,
+        cy: point.y,
+        r: 5
+      });
+      const markerTitle = createSvgElement("title");
+
+      markerTitle.textContent = `${formatDateLabel(point.date)}: ${formatDistance(point.value)}`;
+      marker.append(markerTitle);
+      svg.append(marker);
+    });
+
+    trendChart.replaceChildren(svg);
+  }
+
+  async function loadStats() {
+    if (!statsStatus) return;
+
+    const targetDate = getTodayDateParam();
+    setStatsStatus("全体統計を読み込み中です。");
+
+    if (statsDateLabel) {
+      statsDateLabel.textContent = `${formatDateLabel(targetDate)}時点の累計`;
+    }
+
+    try {
+      const data = await fetchJson(buildStatsUrl(targetDate));
+      const stats = parseStatsData(data);
+
+      setStatsValue("totalTactileLengthMeters", formatDistance(stats.totalTactileLengthMeters));
+      setStatsValue("totalRoadInfoPosts", formatCount(stats.totalRoadInfoPosts, "件"));
+      setStatsValue("totalUsers", formatCount(stats.totalUsers, "人"));
       setStatsStatus("");
     } catch (error) {
       console.error("Failed to load site stats", error);
@@ -577,6 +817,39 @@
         "全体統計を取得できませんでした。",
         error.detail || error.message || "不明なエラー"
       );
+    }
+  }
+
+  async function loadStatsTrend() {
+    if (!trendChart) return;
+
+    setTrendMessage("推移を読み込み中です。");
+    setTrendStatus("");
+
+    try {
+      const dates = getPastWeekDateParams();
+      const statsList = await Promise.all(
+        dates.map(async (date) => {
+          const data = await fetchJson(buildStatsUrl(date));
+          const stats = parseStatsData(data);
+
+          return {
+            date,
+            value: stats.totalTactileLengthMeters
+          };
+        })
+      );
+      const firstPoint = statsList[0];
+      const lastPoint = statsList[statsList.length - 1];
+
+      renderStatsTrend(statsList);
+      if (trendSummary) {
+        trendSummary.textContent = `${formatDateLabel(firstPoint.date)}から${formatDateLabel(lastPoint.date)}まで: ${formatDistance(firstPoint.value)} → ${formatDistance(lastPoint.value)}`;
+      }
+    } catch (error) {
+      console.error("Failed to load stats trend", error);
+      setTrendMessage("推移を取得できませんでした。");
+      setTrendStatus("推移を取得できませんでした。", error.detail || error.message || "不明なエラー");
     }
   }
 
@@ -820,5 +1093,6 @@
 
   currentRankingDays = getSelectedRankingDays();
   loadStats();
+  loadStatsTrend();
   loadRanking();
 })();
