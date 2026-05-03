@@ -331,7 +331,7 @@
                       <option value="1">1日間</option>
                       <option value="7" selected>7日間</option>
                       <option value="30">1か月間</option>
-                      <option value="180">半年間</option>
+                      <option value="90">3か月間</option>
                       <option value="365">1年間</option>
                     </select>
                     <span class="stats-section__lead">のランキング</span>
@@ -357,7 +357,7 @@
                     >
                       <option value="7">7日間</option>
                       <option value="30" selected>1か月間</option>
-                      <option value="180">半年間</option>
+                      <option value="90">3か月間</option>
                       <option value="365">1年間</option>
                     </select>
                     <span class="stats-section__lead">の推移</span>
@@ -375,6 +375,39 @@
                   <p class="stats-status stats-status--trend" data-stats-trend-status role="status"></p>
                 </div>
               </article>
+
+              <article class="howto-slide stats-slide">
+                <div class="stats-slide__body">
+                  <h3 class="howto-slide__title stats-slide__title">ユーザー数推移</h3>
+
+                  <div class="stats-section__period-control">
+                    <span class="stats-section__lead">過去</span>
+                    <label class="visually-hidden" for="user-trend-period-select">ユーザー数推移グラフの表示期間</label>
+                    <select
+                      class="stats-section__period-select"
+                      id="user-trend-period-select"
+                      data-user-trend-period
+                    >
+                      <option value="7">7日間</option>
+                      <option value="30" selected>1か月間</option>
+                      <option value="90">3か月間</option>
+                      <option value="365">1年間</option>
+                    </select>
+                    <span class="stats-section__lead">の推移</span>
+                  </div>
+
+                  <div
+                    class="stats-trend"
+                    data-user-trend-chart
+                    aria-live="polite"
+                    aria-label="ユーザー数推移"
+                  >
+                    <p class="stats-trend__message">推移を読み込み中です。</p>
+                  </div>
+
+                  <p class="stats-status stats-status--trend" data-user-trend-status role="status"></p>
+                </div>
+              </article>
             </div>
           </div>
 
@@ -387,6 +420,7 @@
               <button class="howto-carousel__dot is-active" type="button" aria-label="全体統計へ移動"></button>
               <button class="howto-carousel__dot" type="button" aria-label="ランキングへ移動"></button>
               <button class="howto-carousel__dot" type="button" aria-label="推移グラフへ移動"></button>
+              <button class="howto-carousel__dot" type="button" aria-label="ユーザー数推移へ移動"></button>
             </div>
 
             <button class="howto-carousel__arrow" type="button" data-stats-next aria-label="次の統計ページ">
