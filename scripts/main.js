@@ -128,14 +128,17 @@
 (function () {
   const config = window.StepBySiteConfig || {};
   const rankingList = document.querySelector("[data-tactile-ranking-list]");
+  const periodSelect = document.querySelector("[data-ranking-period]");
 
   if (!rankingList) return;
 
-  const rankingDays = 7;
+  const defaultRankingDays = 7;
   const rankingLimit = 5;
   const rankingEndpoint = config.api?.tactileRanking || "/api/tactile-ranking";
   const recordsEndpoint = config.api?.records || getSiblingApiEndpoint("/api/records");
   const sessionInfoEndpoint = config.api?.tactileSessionInfo || getSiblingApiEndpoint("/api/tactile-session-info");
+  let currentRankingDays = defaultRankingDays;
+  let rankingRequestId = 0;
 
   function getRankingUrlBase() {
     return new URL(rankingEndpoint, window.location.href);
@@ -147,7 +150,7 @@
 
   function buildRankingUrl() {
     return buildApiUrl(rankingEndpoint, {
-      days: rankingDays,
+      days: currentRankingDays,
       limit: rankingLimit
     });
   }
@@ -172,6 +175,15 @@
     } catch (error) {
       return value;
     }
+  }
+
+  function getSelectedRankingDays() {
+    const selectedDays = Number.parseInt(periodSelect?.value, 10);
+    return Number.isFinite(selectedDays) && selectedDays > 0 ? selectedDays : defaultRankingDays;
+  }
+
+  function getSelectedPeriodLabel() {
+    return periodSelect?.selectedOptions?.[0]?.textContent?.trim() || `${currentRankingDays}日間`;
   }
 
   function getFirstValue(sources, keys) {
@@ -453,7 +465,7 @@
   async function loadRankingFromRecords() {
     const data = await fetchJson(buildApiUrl(recordsEndpoint));
     const records = extractRecordEntries(data);
-    const cutoffTime = Date.now() - rankingDays * 24 * 60 * 60 * 1000;
+    const cutoffTime = Date.now() - currentRankingDays * 24 * 60 * 60 * 1000;
     const users = new Map();
 
     records.forEach((record) => {
@@ -624,7 +636,10 @@
   }
 
   async function loadRanking() {
+    const requestId = ++rankingRequestId;
+
     rankingList.setAttribute("aria-busy", "true");
+    setRankingMessage(`過去${getSelectedPeriodLabel()}のランキングを読み込み中です。`);
 
     try {
       let entries = [];
@@ -641,22 +656,38 @@
         entries = await loadRankingFromRecords();
       }
 
+      if (requestId !== rankingRequestId) {
+        return;
+      }
+
       if (entries.length === 0) {
-        setRankingMessage("過去7日間の記録はまだありません。");
+        setRankingMessage(`過去${getSelectedPeriodLabel()}の記録はまだありません。`);
         return;
       }
 
       rankingList.replaceChildren(...entries.map(createRankingItem));
     } catch (error) {
+      if (requestId !== rankingRequestId) {
+        return;
+      }
+
       console.error("Failed to load tactile ranking", error);
       setRankingMessage(
         "ランキングを取得できませんでした。",
         error.detail || error.message || "不明なエラー"
       );
     } finally {
-      rankingList.setAttribute("aria-busy", "false");
+      if (requestId === rankingRequestId) {
+        rankingList.setAttribute("aria-busy", "false");
+      }
     }
   }
 
+  periodSelect?.addEventListener("change", () => {
+    currentRankingDays = getSelectedRankingDays();
+    loadRanking();
+  });
+
+  currentRankingDays = getSelectedRankingDays();
   loadRanking();
 })();

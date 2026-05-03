@@ -290,7 +290,22 @@
         <h2 class="section-heading" id="stats-heading">統計</h2>
 
         <div class="stats-section__header">
-          <p class="stats-section__lead">過去7日間の点字ブロック記録距離ランキング</p>
+          <div class="stats-section__period-control">
+            <span class="stats-section__lead">過去</span>
+            <label class="visually-hidden" for="stats-period-select">ランキングの集計期間</label>
+            <select
+              class="stats-section__period-select"
+              id="stats-period-select"
+              data-ranking-period
+            >
+              <option value="1">1日間</option>
+              <option value="7" selected>7日間</option>
+              <option value="30">1か月間</option>
+              <option value="180">半年間</option>
+              <option value="365">1年間</option>
+            </select>
+            <span class="stats-section__lead">の点字ブロック記録距離ランキング</span>
+          </div>
         </div>
 
         <ol class="tactile-ranking" data-tactile-ranking-list aria-live="polite">
