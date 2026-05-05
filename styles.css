@@ -970,6 +970,11 @@ img {
 @media (max-width: 1100px) {
   .hero {
     display: grid;
+    grid-template-columns: 1fr;
+    /* スマホ縦・タブレット縦でも画面端まで広がるよう、明示的に幅100%・余白0を指定 */
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
     min-height: auto;
     background: none;
   }
@@ -979,6 +984,10 @@ img {
   }
 
   .hero__panel {
+    /* スマホ縦・タブレット縦でも各パネルが画面端まで広がるよう、幅100%・余白0を明示 */
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
     min-height: auto;
   }
 
