@@ -270,14 +270,18 @@ img {
 }
 
 .hero__panel--content {
-  flex: 0 1 600px;
+  /* 画面幅いっぱいまで広がる左パネル */
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .hero__panel--visual {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 1 600px;
+  /* 画面幅いっぱいまで広がる右パネル */
+  flex: 1 1 0;
+  min-width: 0;
   padding: 26px 40px 30px;
 }
 
@@ -288,9 +292,9 @@ img {
   gap: 34px;
   min-height: 100%;
   width: 100%;
-  max-width: 520px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 34px 40px 30px;
+  padding: 34px 56px 30px;
 }
 
 .hero__brand {
@@ -353,7 +357,7 @@ img {
 
 .hero__image-card {
   width: 100%;
-  max-width: 410px;
+  max-width: 520px;
   padding: 14px;
   border-radius: 28px;
   background: #ffffff;
@@ -614,13 +618,11 @@ img {
 .stats-trend {
   width: 100%;
   min-height: 280px;
-  overflow-x: auto;
 }
 
 .stats-trend__svg {
   display: block;
   width: 100%;
-  min-width: 560px;
   height: auto;
 }
 
@@ -1479,6 +1481,8 @@ img {
 
 .howto-slide {
   flex: 0 0 100%;
+  /* 子要素の intrinsic min-width で flex 幅が崩れないよう min-width: 0 を明示する */
+  min-width: 0;
   display: flex;
   gap: 32px;
   align-items: stretch;
@@ -1488,6 +1492,8 @@ img {
   padding: 32px;
   box-sizing: border-box;
   min-height: 320px;
+  /* スライドからのオーバーフローを抑止し、translateX 移動時のレイアウト破綻を防ぐ */
+  overflow: hidden;
 }
 
 .howto-slide__image {
