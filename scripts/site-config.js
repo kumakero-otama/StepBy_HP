@@ -1,5 +1,5 @@
 window.StepBySiteConfig = {
-  version: "HP: v1.6.9",
+  version: "HP: v1.6.10",
   api: {
     stats: "https://barrierfree-map.loophole.site/api/stats",
     tactileRanking: "https://barrierfree-map.loophole.site/api/tactile-ranking",
@@ -7,6 +7,6 @@ window.StepBySiteConfig = {
     tactileSessionInfo: "https://barrierfree-map.loophole.site/api/tactile-session-info"
   },
   links: {
-    mapApp: "https://kumakero-otama.github.io/StepBy/UI2/map/Index.html"
+    mapApp: "https://kumakero-otama.github.io/StepBy/UI0/map/Index.html"
   }
 };
