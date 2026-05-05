@@ -1432,11 +1432,12 @@ img {
   }
 
   .hero__panel--visual {
-    padding: 16px 16px 28px;
+    padding: 12px 16px 24px;
   }
 
   .hero__image-card {
-    max-width: 320px;
+    /* スマホでは画像カードもパネル幅いっぱいまで広げる（幅なり） */
+    max-width: 100%;
     margin: 0 auto;
   }
 
