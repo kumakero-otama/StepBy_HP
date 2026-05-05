@@ -81,6 +81,74 @@
   });
 })();
 
+(function setupMobileDrawer() {
+  const drawer = document.querySelector("[data-mobile-drawer]");
+  const toggle = document.querySelector("[data-mobile-menu-toggle]");
+  if (!drawer || !toggle) return;
+
+  const header = document.querySelector(".site-header");
+  const closeButtons = document.querySelectorAll("[data-mobile-drawer-close]");
+
+  function openDrawer() {
+    drawer.classList.add("is-open");
+    drawer.setAttribute("aria-hidden", "false");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.setAttribute("aria-label", "メニューを閉じる");
+    if (header) header.setAttribute("data-menu-open", "true");
+    document.body.classList.add("is-mobile-drawer-open");
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove("is-open");
+    drawer.setAttribute("aria-hidden", "true");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", "メニューを開く");
+    if (header) header.removeAttribute("data-menu-open");
+    document.body.classList.remove("is-mobile-drawer-open");
+  }
+
+  toggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    if (drawer.classList.contains("is-open")) {
+      closeDrawer();
+    } else {
+      openDrawer();
+    }
+  });
+
+  closeButtons.forEach((btn) => {
+    btn.addEventListener("click", closeDrawer);
+  });
+
+  // ドロワー内のオプション選択（仮）：選択状態の見た目だけ切り替える。
+  drawer.querySelectorAll(".mobile-drawer__group").forEach((group) => {
+    const options = group.querySelectorAll(".mobile-drawer__option");
+    options.forEach((opt) => {
+      opt.addEventListener("click", () => {
+        options.forEach((o) => o.classList.remove("is-selected"));
+        opt.classList.add("is-selected");
+      });
+    });
+  });
+
+  // Escape キーで閉じる
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && drawer.classList.contains("is-open")) {
+      closeDrawer();
+    }
+  });
+
+  // ウィンドウ幅が広がってPCサイズになったら、開いていたら閉じる
+  const mql = window.matchMedia("(min-width: 769px)");
+  if (mql && typeof mql.addEventListener === "function") {
+    mql.addEventListener("change", (e) => {
+      if (e.matches && drawer.classList.contains("is-open")) {
+        closeDrawer();
+      }
+    });
+  }
+})();
+
 (function () {
   const carousel = document.querySelector("[data-howto-carousel]");
   if (!carousel) return;

@@ -101,8 +101,61 @@
           </div>
         </div>
       </div>
+
+      <button
+        class="site-header__menu-toggle"
+        type="button"
+        data-mobile-menu-toggle
+        aria-label="メニューを開く"
+        aria-expanded="false"
+        aria-controls="mobile-drawer"
+      >
+        <span class="site-header__menu-line" aria-hidden="true"></span>
+        <span class="site-header__menu-line" aria-hidden="true"></span>
+        <span class="site-header__menu-line" aria-hidden="true"></span>
+      </button>
     </div>
   </header>
+
+  <div class="mobile-drawer" id="mobile-drawer" data-mobile-drawer aria-hidden="true">
+    <div class="mobile-drawer__backdrop" data-mobile-drawer-close aria-hidden="true"></div>
+    <aside class="mobile-drawer__panel" role="dialog" aria-modal="true" aria-label="メニュー">
+      <button
+        class="mobile-drawer__close"
+        type="button"
+        data-mobile-drawer-close
+        aria-label="メニューを閉じる"
+      >×</button>
+
+      <a
+        class="mobile-drawer__app-link"
+        data-app-link="mapApp"
+        href="#"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <img src="assets/icons/open_1fgray.png" alt="" aria-hidden="true">
+        <span>StepByを開く</span>
+      </a>
+
+      <section class="mobile-drawer__group" aria-labelledby="mobile-drawer-text-size-title">
+        <h3 class="mobile-drawer__title" id="mobile-drawer-text-size-title">文字サイズ</h3>
+        <div class="mobile-drawer__options">
+          <button class="mobile-drawer__option is-selected" type="button">小</button>
+          <button class="mobile-drawer__option" type="button">中</button>
+          <button class="mobile-drawer__option" type="button">大</button>
+        </div>
+      </section>
+
+      <section class="mobile-drawer__group" aria-labelledby="mobile-drawer-language-title">
+        <h3 class="mobile-drawer__title" id="mobile-drawer-language-title">Language</h3>
+        <div class="mobile-drawer__options">
+          <button class="mobile-drawer__option is-selected" type="button">日本語</button>
+          <button class="mobile-drawer__option" type="button">English</button>
+        </div>
+      </section>
+    </aside>
+  </div>
 
   <main class="page-main">
     <section class="hero" aria-labelledby="hero-title">
