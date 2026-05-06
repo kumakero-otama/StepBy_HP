@@ -266,6 +266,11 @@ img {
 }
 
 .hero__panel {
+  /* .hero::before（ベタ塗り疑似要素）の上にコンテンツが来るように、
+     パネルを positioned にして stacking order を上げる。
+     これがないと ::before がタイトル・説明文・ボタンを覆ってしまう。 */
+  position: relative;
+  z-index: 1;
   min-height: calc(100dvh - var(--header-height) - var(--guide-nav-height));
 }
 
