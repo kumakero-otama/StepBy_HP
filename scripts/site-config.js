@@ -1,5 +1,5 @@
 window.StepBySiteConfig = {
-  version: "HP: v1.6.16",
+  version: "HP: v1.7.0",
   api: {
     stats: "https://barrierfree-map.loophole.site/api/stats",
     tactileRanking: "https://barrierfree-map.loophole.site/api/tactile-ranking",
