@@ -247,6 +247,12 @@ img {
     #ffffff 50%,
     #ffffff 100%
   );
+  /* 背景グラデーション（緑/白50:50）はビューポート全幅で保ちつつ、
+     コンテンツ（テキスト・画像）はサイト共通の content-max-width (1200px)
+     に収めて左右の余白を空ける。padding は背景には影響しない（border-box内）ため、
+     色の切り替わり（50%）は viewport 中央のままになる。 */
+  padding-left: max(0px, calc((100% - var(--content-max-width)) / 2));
+  padding-right: max(0px, calc((100% - var(--content-max-width)) / 2));
 }
 
 .hero::before {
