@@ -1,2 +1,5 @@
 # Claude Code のローカル個人設定（許可コマンド一覧など）
 .claude/settings.local.json
+
+# macOS Finder metadata
+.DS_Store
