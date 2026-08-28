@@ -1,6 +1,8 @@
 (function setupSiteLanguage() {
   "use strict";
 
+  // 原文（日本語）をキーにして英訳する軽量方式。HTML構造を複製せず、
+  // 同じアクセシブルな要素を日本語・英語の両方で利用する。
   const STORAGE_KEY = "stepby-hp-language";
   const translations = {
     "StepBy : 視覚障害者向け地図情報共有アプリ": "StepBy: A Map Information Sharing App for People with Visual Impairments",

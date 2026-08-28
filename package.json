@@ -1,0 +1,8 @@
+{
+  "name": "stepby-homepage",
+  "version": "1.8.5",
+  "private": true,
+  "scripts": {
+    "test": "node test/site_language.test.js"
+  }
+}

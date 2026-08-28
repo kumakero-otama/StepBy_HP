@@ -1,4 +1,6 @@
 (function () {
+  // 共通ヘッダー、ナビゲーション、統計表示をこのファイルで初期化する。
+  // API URLやアプリURLは直書きせず、site-config.jsを唯一の設定元とする。
   const config = window.StepBySiteConfig;
   const header = document.querySelector(".site-header");
   const versionElement = document.querySelector("[data-site-version]");
