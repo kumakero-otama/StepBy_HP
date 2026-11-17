@@ -3,8 +3,8 @@
 window.StepBySiteConfig = {
   version: "HP: v1.8.5",
   api: {
-    stats: "https://barrierfree-map.tail5de5e1.ts.net/api/stats",
-    tactileRanking: "https://barrierfree-map.tail5de5e1.ts.net/api/tactile-ranking",
+    stats: "https://stepby-api-8-229-191-182.sslip.io/api/public/stats",
+    tactileRanking: "https://stepby-api-8-229-191-182.sslip.io/api/public/tactile-ranking",
     records: "https://barrierfree-map.tail5de5e1.ts.net/api/records",
     tactileSessionInfo: "https://barrierfree-map.tail5de5e1.ts.net/api/tactile-session-info"
   },
