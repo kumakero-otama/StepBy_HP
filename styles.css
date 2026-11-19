@@ -512,6 +512,19 @@ img {
   object-fit: cover;
 }
 
+/* 写真追加前も、記事・一覧で画像領域の大きさを保つ。 */
+.news-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 16 / 9;
+  background: #f3f7f6;
+  color: #5d6764;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
 .news-card__body {
   padding: 22px 22px 24px;
 }
